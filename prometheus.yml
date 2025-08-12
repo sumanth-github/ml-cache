@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'ml-cache'
+    static_configs:
+      - targets: ['172.29.202.205:8080']
