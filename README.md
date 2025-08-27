@@ -27,17 +27,19 @@ This project demonstrates how **adaptive, ML-driven eviction policies** can outp
 ```mermaid
 flowchart LR
     Client[Client Request] --> Gateway
-    Gateway -->|Consistent Hashing| Node1
-    Gateway -->|Consistent Hashing| Node2
-    Gateway -->|Consistent Hashing| Node3
+    
+    Gateway -->|Consistent Hashing| Node1[Node 1: LRU]
+    Gateway -->|Consistent Hashing| Node2[Node 2: LFU]
+    Gateway -->|Consistent Hashing| Node3[Node 3: ML + LRU Hybrid]
+    Gateway -->|Consistent Hashing| Node4[Node 4: ML + LFU Hybrid]
     
     Node1 --> Badger1[(BadgerDB)]
     Node2 --> Badger2[(BadgerDB)]
     Node3 --> Badger3[(BadgerDB)]
+    Node4 --> Badger4[(BadgerDB)]
     
-    Node1 -->|Eviction Trigger| MLService[ML Eviction Service]
-    Node2 -->|Eviction Trigger| MLService
-    Node3 -->|Eviction Trigger| MLService
+    Node3 -->|Eviction Trigger| MLService[ML Eviction Service]
+    Node4 -->|Eviction Trigger| MLService
     
     MLService --> Prometheus
     Prometheus --> Grafana
@@ -47,11 +49,13 @@ flowchart LR
 
 ## 📊 Benchmarks
 
-| Policy | Hit Rate (%) | Latency (ms) | Notes                       |
-| ------ | ------------ | ------------ | --------------------------- |
-| LRU    | 68%          | 5.2          | Baseline                    |
-| LFU    | 71%          | 5.5          | Better for skewed workloads |
-| **ML** | **87%**      | 6.1          | Adaptive, workload-aware    |
+| Node / Policy         | Hit Rate (%) | Latency (ms) | Notes                                              |
+| --------------------- | ------------ | ------------ | -------------------------------------------------- |
+| **Node 1 (LRU)**      | 68%          | 5.2          | Baseline, good for sequential workloads            |
+| **Node 2 (LFU)**      | 71%          | 5.5          | Stable under skewed hot-key workloads              |
+| **Node 3 (ML + LRU)** | **84%**      | 6.0          | Learns recency-based traffic shifts, adapts faster |
+| **Node 4 (ML + LFU)** | **87%**      | 6.1          | Best under long-tail, high-frequency workloads     |
+
 
 ---
 
@@ -88,7 +92,9 @@ docker-compose up -d
 
 Sample dashboard showing **cache hit ratio & eviction events**:
 
-![Grafana Example](https://dummyimage.com/800x300/000/fff\&text=Grafana+Dashboard+Preview)
+![Grafana Example]
+<img width="946" height="989" alt="image" src="https://github.com/user-attachments/assets/dbbae041-6db4-4471-9299-96efe77cdc82" />
+
 
 ---
 
