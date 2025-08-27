@@ -92,7 +92,7 @@ docker-compose up -d
 
 Sample dashboard showing **cache hit ratio & eviction events**:
 
-![Grafana Example]
+
 <img width="946" height="989" alt="image" src="https://github.com/user-attachments/assets/dbbae041-6db4-4471-9299-96efe77cdc82" />
 
 
