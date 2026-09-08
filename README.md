@@ -32,33 +32,33 @@ This is a learning/portfolio project built incrementally, with a deliberate focu
                         │   hashing, virtual nodes)│
                         └────────────┬─────────────┘
                                      │
-        ┌──────────────┬────────────┼────────────┬──────────────┐
-        │              │            │             │              │
-   ┌────▼───┐     ┌────▼───┐   ┌────▼───┐    ┌────▼───┐          │
+        ┌──────────────┬────────────┼────────────┬───────────────┐
+        │              │            │            │               │
+   ┌────▼───┐     ┌────▼───┐   ┌────▼───┐    ┌───▼────┐          │
    │ Node 0 │     │ Node 1 │   │ Node 2 │    │ Node 3 │          │
    │  LFU   │     │  LRU   │   │ ML_LFU │    │ ML_LRU │          │
    └────┬───┘     └────┬───┘   └────┬───┘    └────┬───┘          │
         │              │            │             │              │
-   ┌────▼──────────────▼────────────▼─────────────▼───┐          │
-   │  Each node: in-memory cache + WAL + BadgerDB       │          │
-   │  snapshot + eviction policy + Prometheus metrics   │          │
-   └─────────────────────────────────────────────────┬─┘          │
-                                                       │            │
-                                              ┌────────▼────────────▼───┐
-                                              │  ML Eviction Service     │
-                                              │  (FastAPI + sklearn)     │
-                                              │  POST /predict           │
-                                              └──────────────────────────┘
+   ┌────▼──────────────▼────────────▼─────────────▼────┐         │
+   │  Each node: in-memory cache + WAL + BadgerDB      │         │
+   │  snapshot + eviction policy + Prometheus metrics  │         │
+   └─────────────────────────────────────────────────┬─┘         │
+                                                     |           │
+                                              ┌──────▼───────────▼──────┐
+                                              │  ML Eviction Service    │
+                                              │  (FastAPI + sklearn)    │
+                                              │  POST /predict          │
+                                              └─────────────────────────┘
 ```
 
 The cluster runs **4 nodes**, each assigned a different eviction policy so all four can be compared under the same simulated load in real time:
 
-| Node | Policy   | Description                                  |
+| Node | Policy   | Description                                   |
 |------|----------|-----------------------------------------------|
 | 0    | `LFU`    | Pure least-frequently-used                    |
 | 1    | `LRU`    | Pure least-recently-used                      |
-| 2    | `ML_LFU` | LFU base policy, ML-first eviction wrapper     |
-| 3    | `ML_LRU` | LRU base policy, ML-first eviction wrapper     |
+| 2    | `ML_LFU` | LFU base policy, ML-first eviction wrapper    |
+| 3    | `ML_LRU` | LRU base policy, ML-first eviction wrapper    |
 
 Keys are distributed across nodes via **consistent hashing with virtual nodes** (100 virtual nodes per physical node), giving even key distribution and small blast radius on rebalancing.
 
@@ -191,10 +191,11 @@ Both Go and Python services are scraped by Prometheus (`prometheus.yml`) and can
 │   └── wal.go                     # Write-ahead log: append, replay
 ├── metrics/
 │   └── metrics.go                 # Shared Prometheus counters
-├── ml_eviction_service.py         # FastAPI ML prediction service
-├── build_training_data.py         # Builds labeled training set from access log
-├── train_eviction_model_v2.py     # Trains RandomForestClassifier, saves eviction_model.pkl
-├── clean_access_log.py            # Sanitizes raw access log CSV
+├── ml_files/                
+│   ├── ml_eviction_service.py         # FastAPI ML prediction service                
+│   ├── build_training_data.py         # Builds labeled training set from access log
+│   └── train_eviction_model_v2.py     # Trains RandomForestClassifier, saves eviction_model.pkl
+|   └── clean_access_log.py            # Sanitizes raw access log CSV
 ├── prometheus.yml                 # Prometheus scrape config
 ├── docker-compose.yml             # Prometheus + Grafana stack
 └── load_test.sh                   # Simple bash load generator
